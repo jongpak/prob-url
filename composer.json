@@ -1,0 +1,14 @@
+{
+    "name": "prob/url-helper",
+    "description": "A simple library for handling path of url and matching url easily",
+    "homepage": "https://github.com/jongpak/prob-url",
+    "keywords": ["url", "path", "match"],
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": { "Prob\\Url\\": "src/" }
+    },
+    "require": {
+        "php": ">=5.4.0"
+    }
+}
