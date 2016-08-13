@@ -78,6 +78,13 @@ class Matcher
     }
 
     /**
+     * Extract name and format type using $str
+     * if $str is plain text url form, return $str.
+     * otherwise, return below:
+     * array['name']    string name
+     *      ['type']    string type
+     *
+     *
      * @param $str
      * @return array|string
      */
