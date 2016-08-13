@@ -9,26 +9,24 @@ class PathTest extends TestCase
     public function testSegment1()
     {
         $path = new Path('/some/other');
-        $this->assertEquals($path->seg(0), 'some');
+        $this->assertEquals('some', $path->seg(0));
     }
 
     public function testSegment2()
     {
         $path = new Path('/some/other');
-        $this->assertEquals($path->seg(1), 'other');
+        $this->assertEquals('other', $path->seg(1));
     }
 
     public function testSegment3()
     {
         $path = new Path('//some//other///');
-        $this->assertEquals(count($path->segments()), 2);
+        $this->assertEquals(2, count($path->segments()));
     }
 
     public function testSegments()
     {
         $path = new Path('/some/other//etc');
-        $this->assertEquals($path->segments(), [
-            'some', 'other', 'etc'
-        ]);
+        $this->assertEquals(['some', 'other', 'etc'], $path->segments());
     }
 }
