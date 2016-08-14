@@ -59,5 +59,4 @@ class MatcherTest extends TestCase
         $matcher = new Matcher('/{someName:int}');
         $this->assertEquals(false, $matcher->match('/test'));
     }
-
 }

@@ -40,16 +40,18 @@ class Matcher
         $pattern = new ArrayIterator($this->urlTokens);
         $isMatch = preg_match('/^' . $this->urlRegexPattern . '$/', $path, $result);
 
-        if ($isMatch === 0)
+        if ($isMatch === 0) {
             return false;
+        }
 
         $resolveToken = [];
         unset($result[0]);
 
         foreach ($result as $token) {
             // {name} or {name:type} segment
-            if(gettype($pattern->current()) === 'array')
+            if (gettype($pattern->current()) === 'array') {
                 $resolveToken[$pattern->current()['name']] = $token;
+            }
             $pattern->next();
         }
 
@@ -60,17 +62,18 @@ class Matcher
     {
         $pattern = '(\/)';
 
-        if(count($this->urlSegment) > 0) {
+        if (count($this->urlSegment) > 0) {
             $pattern = '';
 
             foreach ($this->urlSegment as $seg) {
                 $token = $this->translateToken($seg);
                 $this->urlTokens[] = $token;
 
-                if(gettype($token) === 'string')
+                if (gettype($token) === 'string') {
                     $pattern .= sprintf('\/(%s)', $token);
-                else
+                } else {
                     $pattern .= sprintf('\/(%s)', $this->typeRegex[$token['type']]);
+                }
             }
         }
 
