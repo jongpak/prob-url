@@ -2,9 +2,9 @@
 
 namespace Prob\Url;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit_Framework_TestCase;
 
-class MatcherTest extends TestCase
+class MatcherTest extends PHPUnit_Framework_TestCase
 {
     public function testStaticMatch()
     {
