@@ -1,6 +1,8 @@
 # Prob/Url
 *A simple library for handling path of url and matching url easily*
 
+[![Build Status](https://travis-ci.org/jongpak/prob-url.svg?branch=master)](https://travis-ci.org/jongpak/prob-url)
+
 ## Usage
 
 ### Simple path parser
