@@ -2,6 +2,7 @@
 *A simple library for handling path of url and matching url easily*
 
 [![Build Status](https://travis-ci.org/jongpak/prob-url.svg?branch=master)](https://travis-ci.org/jongpak/prob-url)
+[![codecov](https://codecov.io/gh/jongpak/prob-url/branch/master/graph/badge.svg)](https://codecov.io/gh/jongpak/prob-url)
 
 ## Usage
 
