@@ -68,4 +68,17 @@ class MatcherTest extends PHPUnit_Framework_TestCase
         $this->expectException(TypePatternNotFound::class);
         $matcher->match('/test@test.com');
     }
+
+    public function testCustomTypePattren()
+    {
+        $matcher = new Matcher('/{emailAddress:email}/{ipAddress:ip}/{name:string}');
+        $matcher->addTypePattern('email', '\S+@\S+\.\S+');
+        $matcher->addTypePattern('ip', '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}');
+
+        $this->assertEquals([
+            'emailAddress' => 'test@test.com',
+            'ipAddress' => '127.0.0.1',
+            'name' => 'Park'
+        ], $matcher->match('/test@test.com/127.0.0.1/Park'));
+    }
 }

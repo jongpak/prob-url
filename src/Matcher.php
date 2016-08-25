@@ -29,6 +29,16 @@ class Matcher
     }
 
     /**
+     * Add type and matching pattern
+     * @param string $type name of type
+     * @param string $regexPattern regex pattern of type
+     */
+    public function addTypePattern($type, $pattern)
+    {
+        $this->typeRegex[$type] = $pattern;
+    }
+
+    /**
      * @param $path
      * @return array|bool if not matched, return false. else, return placeholder name and value
      */
