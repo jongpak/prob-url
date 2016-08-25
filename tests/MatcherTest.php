@@ -63,7 +63,9 @@ class MatcherTest extends PHPUnit_Framework_TestCase
 
     public function testNotExistsType()
     {
-        $this->expectException(TypePatternNotFound::class);
         $matcher = new Matcher('/{emailAddress:email}');
+
+        $this->expectException(TypePatternNotFound::class);
+        $matcher->match('/test@test.com');
     }
 }

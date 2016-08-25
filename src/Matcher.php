@@ -16,8 +16,6 @@ class Matcher
     ];
 
     private $urlSegment = [];
-    private $urlRegexPattern = [];
-    private $urlTokens = [];
 
     /**
      * Matcher constructor.
@@ -28,8 +26,6 @@ class Matcher
     {
         $urlPath = new Path($path);
         $this->urlSegment = $urlPath->segments();
-
-        $this->interpret();
     }
 
     /**
@@ -38,50 +34,62 @@ class Matcher
      */
     public function match($path)
     {
-        $pattern = new ArrayIterator($this->urlTokens);
-        $isMatch = preg_match('/^' . $this->urlRegexPattern . '$/', $path, $result);
+        $pattern = new ArrayIterator($this->getResolvedToken());
+        $isMatch = preg_match('/^' . $this->getMatchingRegexPattern() . '$/', $path, $result);
 
         if ($isMatch === 0) {
             return false;
         }
 
-        $resolveToken = [];
+        $matchedToken = [];
         unset($result[0]);
 
         foreach ($result as $token) {
             // {name} or {name:type} segment
             if (gettype($pattern->current()) === 'array') {
-                $resolveToken[$pattern->current()['name']] = $token;
+                $matchedToken[$pattern->current()['name']] = $token;
             }
             $pattern->next();
         }
 
-        return $resolveToken;
+        return $matchedToken;
     }
 
-    private function interpret()
+    private function getResolvedToken()
     {
-        $pattern = '(\/)';
+        $resolvedToken = [];
 
-        if (count($this->urlSegment) > 0) {
-            $pattern = '';
+        foreach ($this->urlSegment as $seg) {
+            $resolvedToken[] = $this->resolveToken($seg);
+        }
 
-            foreach ($this->urlSegment as $seg) {
-                $token = $this->translateToken($seg);
-                $this->urlTokens[] = $token;
+        return $resolvedToken;
+    }
 
-                if (gettype($token) === 'string') {
-                    $pattern .= sprintf('\/(%s)', $token);
-                } else {
-                    if (array_key_exists($token['type'], $this->typeRegex) === false) {
-                        throw new TypePatternNotFound('[' . $token['type'] . '] type is undefined');
-                    }
-                    $pattern .= sprintf('\/(%s)', $this->typeRegex[$token['type']]);
+    private function getMatchingRegexPattern()
+    {
+        $pattern = count($this->urlSegment) === 0 ? '(\/)' : '';
+
+        foreach ($this->urlSegment as $seg) {
+            $token = $this->resolveToken($seg);
+
+            if (gettype($token) === 'string') {
+                $pattern .= sprintf('\/(%s)', $token);
+            } else {
+                if ($this->isExistType($token['type']) === false) {
+                    throw new TypePatternNotFound('[' . $token['type'] . '] type is undefined');
                 }
+
+                $pattern .= sprintf('\/(%s)', $this->typeRegex[$token['type']]);
             }
         }
 
-        $this->urlRegexPattern = $pattern;
+        return $pattern;
+    }
+
+    private function isExistType($type)
+    {
+        return array_key_exists($type, $this->typeRegex);
     }
 
     /**
@@ -95,7 +103,7 @@ class Matcher
      * @param $str
      * @return array|string
      */
-    private function translateToken($str)
+    private function resolveToken($str)
     {
         // plain text url segment
         if ($this->isMatchingToken($str) === false) {
