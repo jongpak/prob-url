@@ -3,6 +3,7 @@
 namespace Prob\Url;
 
 use \ArrayIterator;
+use Prob\Url\Exception\TypePatternNotFound;
 
 class Matcher
 {
@@ -72,6 +73,9 @@ class Matcher
                 if (gettype($token) === 'string') {
                     $pattern .= sprintf('\/(%s)', $token);
                 } else {
+                    if (array_key_exists($token['type'], $this->typeRegex) === false) {
+                        throw new TypePatternNotFound('[' . $token['type'] . '] type is undefined');
+                    }
                     $pattern .= sprintf('\/(%s)', $this->typeRegex[$token['type']]);
                 }
             }

@@ -3,6 +3,7 @@
 namespace Prob\Url;
 
 use PHPUnit_Framework_TestCase;
+use Prob\Url\Exception\TypePatternNotFound;
 
 class MatcherTest extends PHPUnit_Framework_TestCase
 {
@@ -58,5 +59,11 @@ class MatcherTest extends PHPUnit_Framework_TestCase
     {
         $matcher = new Matcher('/{someName:int}');
         $this->assertEquals(false, $matcher->match('/test'));
+    }
+
+    public function testNotExistsType()
+    {
+        $this->expectException(TypePatternNotFound::class);
+        $matcher = new Matcher('/{emailAddress:email}');
     }
 }
