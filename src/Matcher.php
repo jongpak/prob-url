@@ -31,7 +31,7 @@ class Matcher
     /**
      * Add type and matching pattern
      * @param string $type name of type
-     * @param string $regexPattern regex pattern of type
+     * @param string $pattern regex pattern of type
      */
     public function addTypePattern($type, $pattern)
     {
