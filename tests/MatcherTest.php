@@ -9,76 +9,119 @@ class MatcherTest extends PHPUnit_Framework_TestCase
 {
     public function testStaticMatch()
     {
-        $matcher = new Matcher('/some');
-        $this->assertEquals([], $matcher->match('/some'));
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/some');
+
+        $this->assertEquals(true, $matcher->isMatch('/some'));
+        $this->assertEquals([], $matcher->getMatchedUrlFormat('/some'));
     }
 
     public function testStaticMatchTwoDeep()
     {
-        $matcher = new Matcher('/some/other');
-        $this->assertEquals([], $matcher->match('/some/other'));
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/some/other');
+
+        $this->assertEquals(true, $matcher->isMatch('/some/other'));
+        $this->assertEquals([], $matcher->getMatchedUrlFormat('/some/other'));
     }
 
     public function testStaticNoneMatch()
     {
-        $matcher = new Matcher('/some');
-        $this->assertEquals(false, $matcher->match('/nonSome'));
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/some');
+
+        $this->assertEquals(false, $matcher->isMatch('/other'));
+        $this->assertEquals(null, $matcher->getMatchedUrlFormat('/other'));
     }
 
     public function testStaticNoneMatchTwoDeep()
     {
-        $matcher = new Matcher('/some/other');
-        $this->assertEquals(false, $matcher->match('/some'));
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/some/other');
+
+        $this->assertEquals(false, $matcher->isMatch('/some'));
+        $this->assertEquals(null, $matcher->getMatchedUrlFormat('/some'));
     }
 
     public function testDynamicMatchOneDeep()
     {
-        $matcher = new Matcher('/{someName}');
-        $this->assertEquals(['someName' => 'test'], $matcher->match('/test'));
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/{someName}');
+
+        $this->assertEquals(true, $matcher->isMatch('/test'));
+        $this->assertEquals([
+            'someName' => 'test'
+        ], $matcher->getMatchedUrlFormat('/test'));
     }
 
     public function testDynamicMatchTwoDeep()
     {
-        $matcher = new Matcher('/{someName}/{otherName}');
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/{someName}/{otherName}');
+
+        $this->assertEquals(true, $matcher->isMatch('/test/ok'));
         $this->assertEquals([
             'someName' => 'test',
             'otherName' => 'ok'
-        ], $matcher->match('/test/ok'));
+        ], $matcher->getMatchedUrlFormat('/test/ok'));
+
+        $this->assertEquals(true, $matcher->isMatch('/test/5'));
+        $this->assertEquals([
+            'someName' => 'test',
+            'otherName' => '5'
+        ], $matcher->getMatchedUrlFormat('/test/5'));
     }
 
     public function testDynamicMatchType()
     {
-        $matcher = new Matcher('/{someName:string}/{otherName:int}');
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/{someName:string}/{otherName:int}');
+
+        $this->assertEquals(true, $matcher->isMatch('/test/5'));
         $this->assertEquals([
             'someName' => 'test',
             'otherName' => '5'
-        ], $matcher->match('/test/5'));
+        ], $matcher->getMatchedUrlFormat('/test/5'));
+
+        $this->assertEquals(false, $matcher->isMatch('/test/ok'));
+        $this->assertEquals(null, $matcher->getMatchedUrlFormat('/test/ok'));
     }
 
     public function testDynamicNoneMatch()
     {
-        $matcher = new Matcher('/{someName:int}');
-        $this->assertEquals(false, $matcher->match('/test'));
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/{someName:int}');
+
+        $this->assertEquals(false, $matcher->isMatch('/test'));
+        $this->assertEquals(null, $matcher->getMatchedUrlFormat('/test'));
     }
 
     public function testNotExistsType()
     {
-        $matcher = new Matcher('/{emailAddress:email}');
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/{emailAddress:email}');
 
         $this->expectException(TypePatternNotFound::class);
-        $matcher->match('/test@test.com');
+        $matcher->isMatch('/test@test.com');
+        $matcher->getMatchedUrlFormat('/test@test.com');
     }
 
     public function testCustomTypePattren()
     {
-        $matcher = new Matcher('/{emailAddress:email}/{ipAddress:ip}/{name:string}');
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/{emailAddress:email}/{ipAddress:ip}/{name:string}');
+
         $matcher->addTypePattern('email', '\S+@\S+\.\S+');
         $matcher->addTypePattern('ip', '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}');
 
+        $this->assertEquals(false, $matcher->isMatch('/test.com/localhost/Park'));
+        $this->assertEquals(null, $matcher->getMatchedUrlFormat('/test.com/localhost/Park'));
+
+        $this->assertEquals(true, $matcher->isMatch('/test@test.com/127.0.0.1/Park'));
         $this->assertEquals([
             'emailAddress' => 'test@test.com',
             'ipAddress' => '127.0.0.1',
             'name' => 'Park'
-        ], $matcher->match('/test@test.com/127.0.0.1/Park'));
+        ], $matcher->getMatchedUrlFormat('/test@test.com/127.0.0.1/Park'));
     }
 }

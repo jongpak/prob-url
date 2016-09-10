@@ -4,6 +4,7 @@ namespace Prob\Url;
 
 use \ArrayIterator;
 use Prob\Url\Exception\TypePatternNotFound;
+use Prob\Url\TokenResolver;
 
 class Matcher
 {
@@ -15,17 +16,15 @@ class Matcher
         'string' => '\w+?',
     ];
 
-    private $urlSegment = [];
+    private $urlFormat = '';
 
     /**
-     * Matcher constructor.
-     * @param string $path url placeholder format of $this->$pattern
-     * @see $this->pattern
+     * Set URL Format
+     * @see $this->typeRegex variable
      */
-    public function __construct($path)
+    public function setUrlFormat($urlFormat)
     {
-        $urlPath = new Path($path);
-        $this->urlSegment = $urlPath->segments();
+        $this->urlFormat = $urlFormat;
     }
 
     /**
@@ -42,22 +41,21 @@ class Matcher
      * @param $path
      * @return array|bool if not matched, return false. else, return placeholder name and value
      */
-    public function match($path)
+    public function getMatchedUrlFormat($path)
     {
-        $pattern = new ArrayIterator($this->getResolvedToken());
-
         if ($this->isMatch($path) === false) {
-            return false;
+            return null;
         }
 
+        $pathVariableIterator = new ArrayIterator($this->getMatchingPathVariable($path));
         $matchedToken = [];
 
         foreach ($this->getMatcingToken($path) as $token) {
             // {name} or {name:type} segment
-            if (gettype($pattern->current()) === 'array') {
-                $matchedToken[$pattern->current()['name']] = $token;
+            if (gettype($pathVariableIterator->current()) === 'array') {
+                $matchedToken[$pathVariableIterator->current()['name']] = $token;
             }
-            $pattern->next();
+            $pathVariableIterator->next();
         }
 
         return $matchedToken;
@@ -83,84 +81,19 @@ class Matcher
         return $result;
     }
 
-    private function getResolvedToken()
-    {
-        $resolvedToken = [];
-
-        foreach ($this->urlSegment as $seg) {
-            $resolvedToken[] = $this->resolveToken($seg);
-        }
-
-        return $resolvedToken;
-    }
-
     private function getMatchingRegexPattern()
     {
-        $pattern = count($this->urlSegment) === 0 ? '(\/)' : '';
+        $resolver = new TokenResolver();
+        $resolver->setTypeRegex($this->typeRegex);
 
-        foreach ($this->urlSegment as $seg) {
-            $token = $this->resolveToken($seg);
-
-            if (gettype($token) === 'string') {
-                $pattern .= sprintf('\/(%s)', $token);
-            } else {
-                if ($this->isExistType($token['type']) === false) {
-                    throw new TypePatternNotFound('[' . $token['type'] . '] type is undefined');
-                }
-
-                $pattern .= sprintf('\/(%s)', $this->typeRegex[$token['type']]);
-            }
-        }
-
-        return $pattern;
+        return $resolver->resolvePathPattern(new Path($this->urlFormat));
     }
 
-    private function isExistType($type)
+    private function getMatchingPathVariable()
     {
-        return array_key_exists($type, $this->typeRegex);
-    }
+        $resolver = new TokenResolver();
+        $resolver->setTypeRegex($this->typeRegex);
 
-    /**
-     * Extract name and format type using $str
-     * if $str is plain text url form, return $str.
-     * otherwise, return below:
-     * array['name']    string name
-     *      ['type']    string type
-     *
-     *
-     * @param $str
-     * @return array|string
-     */
-    private function resolveToken($str)
-    {
-        // plain text url segment
-        if ($this->isMatchingToken($str) === false) {
-            return $str;
-
-        // {name} url form
-        } elseif (preg_match('/\{(\w+?)\}/', $str, $result)) {
-            return [
-                'name' => $result[1],
-                'type' => 'string'
-            ];
-
-        // {name:type} url form
-        } elseif (preg_match('/\{(\w+?):(\w+?)\}/', $str, $result)) {
-            return [
-                'name' => $result[1],
-                'type' => $result[2]
-            ];
-        }
-    }
-
-    /**
-     * checking {name} or {name:type} format
-     *
-     * @param $str
-     * @return bool
-     */
-    private function isMatchingToken($str)
-    {
-        return preg_match('/\{(\w+?)\}/', $str) || preg_match('/\{(\w+?):(\w+?)\}/', $str);
+        return $resolver->resolvePathVariable(new Path($this->urlFormat));
     }
 }
