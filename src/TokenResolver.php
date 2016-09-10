@@ -7,7 +7,6 @@ use Prob\Url\Exception\TypePatternNotFound;
 
 class TokenResolver
 {
-
     private $typeRegex = [];
 
     public function setTypeRegex(array $typeRegex)
@@ -31,53 +30,43 @@ class TokenResolver
         $pattern = count($urlPath->segments()) === 0 ? '(\/)' : '';
 
         foreach ($urlPath->segments() as $seg) {
+            /** @var UrlPathToken */
             $token = $this->resolveToken($seg);
 
-            if (gettype($token) === 'string') {
-                $pattern .= sprintf('\/(%s)', $token);
-            } else {
-                if ($this->isExistType($token['type']) === false) {
-                    throw new TypePatternNotFound('[' . $token['type'] . '] type is undefined');
-                }
+            $this->validateType($token->getType());
 
-                $pattern .= sprintf('\/(%s)', $this->typeRegex[$token['type']]);
-            }
+            $pattern .= sprintf('\/(%s)', $token->getType() === null
+                                ? $token->getName()
+                                : $this->typeRegex[$token->getType()]);
         }
 
         return $pattern;
     }
 
     /**
-     * Extract name and format type using $str
-     * if $str is plain text url form, return $str.
-     * otherwise, return below:
-     * array['name']    string name
-     *      ['type']    string type
-     *
-     *
      * @param $str
-     * @return array|string
+     * @return UrlPathToken
      */
     private function resolveToken($str)
     {
+        $urlPathToken = new UrlPathToken();
+
         // plain text url segment
         if ($this->isMatchingToken($str) === false) {
-            return $str;
+            $urlPathToken->setName($str);
 
         // {name} url form
         } elseif (preg_match('/\{(\w+?)\}/', $str, $result)) {
-            return [
-                'name' => $result[1],
-                'type' => 'string'
-            ];
+            $urlPathToken->setType('string');
+            $urlPathToken->setName($result[1]);
 
         // {name:type} url form
         } elseif (preg_match('/\{(\w+?):(\w+?)\}/', $str, $result)) {
-            return [
-                'name' => $result[1],
-                'type' => $result[2]
-            ];
+            $urlPathToken->setType($result[2]);
+            $urlPathToken->setName($result[1]);
         }
+
+        return $urlPathToken;
     }
 
     /**
@@ -91,9 +80,14 @@ class TokenResolver
         return preg_match('/\{(\w+?)\}/', $str) || preg_match('/\{(\w+?):(\w+?)\}/', $str);
     }
 
-
-    private function isExistType($type)
+    private function validateType($type)
     {
-        return array_key_exists($type, $this->typeRegex);
+        if ($type === null) {
+            return;
+        }
+
+        if (array_key_exists($type, $this->typeRegex) === false) {
+            throw new TypePatternNotFound('[' . $type . '] type is undefined');
+        }
     }
 }

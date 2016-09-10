@@ -4,7 +4,6 @@ namespace Prob\Url;
 
 use \ArrayIterator;
 use Prob\Url\Exception\TypePatternNotFound;
-use Prob\Url\TokenResolver;
 
 class Matcher
 {
@@ -51,9 +50,12 @@ class Matcher
         $matchedToken = [];
 
         foreach ($this->getMatcingToken($path) as $token) {
+            /** @var UrlPathToken */
+            $current = $pathVariableIterator->current();
+
             // {name} or {name:type} segment
-            if (gettype($pathVariableIterator->current()) === 'array') {
-                $matchedToken[$pathVariableIterator->current()['name']] = $token;
+            if ($current->getType() !== null) {
+                $matchedToken[$current->getName()] = $token;
             }
             $pathVariableIterator->next();
         }
