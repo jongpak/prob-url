@@ -45,16 +45,14 @@ class Matcher
     public function match($path)
     {
         $pattern = new ArrayIterator($this->getResolvedToken());
-        preg_match('/^' . $this->getMatchingRegexPattern() . '$/', $path, $result);
 
         if ($this->isMatch($path) === false) {
             return false;
         }
 
         $matchedToken = [];
-        unset($result[0]);
 
-        foreach ($result as $token) {
+        foreach ($this->getMatcingToken($path) as $token) {
             // {name} or {name:type} segment
             if (gettype($pattern->current()) === 'array') {
                 $matchedToken[$pattern->current()['name']] = $token;
@@ -70,6 +68,19 @@ class Matcher
         return preg_match('/^' . $this->getMatchingRegexPattern() . '$/', $path)
                 ? true
                 : false;
+    }
+
+    private function getMatcingToken($path)
+    {
+        if ($this->isMatch($path) === false) {
+            return [];
+        }
+
+        $result = [];
+        preg_match('/^' . $this->getMatchingRegexPattern() . '$/', $path, $result);
+        unset($result[0]);
+
+        return $result;
     }
 
     private function getResolvedToken()
