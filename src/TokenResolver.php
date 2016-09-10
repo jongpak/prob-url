@@ -27,7 +27,11 @@ class TokenResolver
 
     public function resolvePathPattern(Path $urlPath)
     {
-        $pattern = count($urlPath->segments()) === 0 ? '(\/)' : '';
+        if (count($urlPath->segments()) === 0) {
+            return '\/';
+        }
+
+        $pattern = '';
 
         foreach ($urlPath->segments() as $seg) {
             /** @var UrlPathToken */

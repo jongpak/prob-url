@@ -7,6 +7,18 @@ use Prob\Url\Exception\TypePatternNotFound;
 
 class MatcherTest extends PHPUnit_Framework_TestCase
 {
+    public function testRootMatch()
+    {
+        $matcher = new Matcher();
+        $matcher->setUrlFormat('/');
+
+        $this->assertEquals(true, $matcher->isMatch('/'));
+        $this->assertEquals([], $matcher->getMatchedUrlFormat('/'));
+
+        $this->assertEquals(false, $matcher->isMatch('/test'));
+        $this->assertEquals([], $matcher->getMatchedUrlFormat('/'));
+    }
+
     public function testStaticMatch()
     {
         $matcher = new Matcher();
