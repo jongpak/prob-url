@@ -45,9 +45,9 @@ class Matcher
     public function match($path)
     {
         $pattern = new ArrayIterator($this->getResolvedToken());
-        $isMatch = preg_match('/^' . $this->getMatchingRegexPattern() . '$/', $path, $result);
+        preg_match('/^' . $this->getMatchingRegexPattern() . '$/', $path, $result);
 
-        if ($isMatch === 0) {
+        if ($this->isMatch($path) === false) {
             return false;
         }
 
@@ -63,6 +63,13 @@ class Matcher
         }
 
         return $matchedToken;
+    }
+
+    public function isMatch($path)
+    {
+        return preg_match('/^' . $this->getMatchingRegexPattern() . '$/', $path)
+                ? true
+                : false;
     }
 
     private function getResolvedToken()
